@@ -29,7 +29,7 @@ void dodajNowaOsobeDoPlikuTekstowego(vector <Osoba> &osoby, int idZalogowanegoUz
 
 void edytujAdresata(vector <Osoba> &osoby);
 void edytujKsiazkeAdresowa(string edytowanyTekst);
-void usunAdresata(vector <Osoba> &osoby);
+int usunAdresata(vector <Osoba> &osoby);
 void usunAdresataZKsiazkiAdresowej(vector <Osoba> &osoby, int idUsuwanegoAdresata);
 void zapiszVectorDoPliku(vector <Osoba> &osoby, int idZalogowanegoUzytkownika);
 
@@ -51,6 +51,7 @@ void wczytajMenuRejestracji(char wyborPoleceniaDoWykonania, vector <Uzytkownik> 
 
 int pobierzIdUzytkownikaZLiniiTekstu(string tekst);
 int pobierzIdAdresataZLinii(string tekst);
+int pobierzIdOstatniegoAdresataZPlikuTekstowego();
 
 int main()
 {
@@ -111,7 +112,7 @@ int main()
                     wyswietlWszystkieOsobyDlaZalogowanegoUzytkownika(osoby, idZalogowanegoUzytkownika);
                     break;
                 case '5':
-                    usunAdresata(osoby);
+                    idOstatniegoAdresata = usunAdresata(osoby);
                     break;
                 case '6':
                     edytujAdresata(osoby);
@@ -227,8 +228,9 @@ int dodajNowaOsobe(vector <Osoba> &osoby, int idZalogowanegoUzytkownika, int idO
     Osoba nowaOsoba;
 
     if (osoby.size() == 0)
+    {
         nowaOsoba.idAdresata = osoby.size() + 1;
-
+    }
     nowaOsoba.idAdresata = ++idOstatniegoAdresata;
     nowaOsoba.idZalogowanegoUzytkownika = idZalogowanegoUzytkownika;
     nowaOsoba.imie = imie;
@@ -478,10 +480,10 @@ void edytujAdresata(vector <Osoba> &osoby)
     system("pause");
 }
 
-void usunAdresata(vector <Osoba> &osoby)
+int usunAdresata(vector <Osoba> &osoby)
 {
     system("cls");
-    int id, iloscOsob = osoby.size();
+    int id, idOstatniegoAdresataPobraneZPlikuTekstowego, iloscOsob = osoby.size();
     string wpisane_id;
     int statusPrawidlowegoID = 0;
     cout << "Podaj ID adresata: ";
@@ -500,12 +502,14 @@ void usunAdresata(vector <Osoba> &osoby)
             {
                 osoby.erase(osoby.begin() + i);
                 usunAdresataZKsiazkiAdresowej(osoby, id);
+                idOstatniegoAdresataPobraneZPlikuTekstowego = pobierzIdOstatniegoAdresataZPlikuTekstowego();
                 system("pause");
             }
             else if (potwierdzenie == 'n')
             {
                 cout << "Nie usunales osoby o podanym ID" << endl;
                 system("pause");
+                return 0;
             }
         }
     }
@@ -513,7 +517,9 @@ void usunAdresata(vector <Osoba> &osoby)
     {
         cout << "Wpisales ID, ktorego nie ma w bazie" << endl;
         system("pause");
+        return 0;
     }
+    return idOstatniegoAdresataPobraneZPlikuTekstowego;
 }
 
 int konwersjaStringNaInt(string wyraz)
@@ -872,3 +878,20 @@ void usunAdresataZKsiazkiAdresowej(vector <Osoba> &osoby, int idUsuwanegoAdresat
     zmienNazwePliku("tymczasowy.txt","Adresaci.txt");
 }
 
+int pobierzIdOstatniegoAdresataZPlikuTekstowego()
+{
+    int idOstatniegoAdresata = 0;
+    string liniaWczytanaZPlikuTekstowego = "";
+    fstream plik;
+    plik.open("Adresaci.txt", ios::in);
+
+    if (plik.good())
+    {
+        while(getline(plik,liniaWczytanaZPlikuTekstowego))
+        {
+            idOstatniegoAdresata = pobierzIdAdresataZLinii(liniaWczytanaZPlikuTekstowego);
+        }
+        plik.close();
+    }
+    return idOstatniegoAdresata;
+}
